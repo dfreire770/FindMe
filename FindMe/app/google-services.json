@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "45282394738",
+    "project_id": "totemic-chimera-147916"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45282394738:android:5d38db14ce86c465",
+        "android_client_info": {
+          "package_name": "com.dkmm.findme.findme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "45282394738-ufu73suan85ha2arqs9j8gukk3jqvm0o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dkmm.findme.findme",
+            "certificate_hash": "5AD4985673B01FD3D338357EE8BC2D6C43690A78"
+          }
+        },
+        {
+          "client_id": "45282394738-t40d7cjrhf3mng6df7kk308ftged0lpi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCg6Jkyx5AiwhpCXokH4mcYHDLyz-kG0E8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
