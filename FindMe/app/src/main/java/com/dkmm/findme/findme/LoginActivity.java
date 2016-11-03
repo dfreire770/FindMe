@@ -164,6 +164,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             //Log.i("Logged in", acct.getDisplayName()+" " +  acct.getEmail() + " "+acct.getPhotoUrl() );
             Intent intent = new Intent(this,MainActivity.class);
             intent.putExtra("usr",acct.getDisplayName());
+            intent.putExtra("email",acct.getEmail());
             Log.i("photo", acct.getPhotoUrl().toString());
             intent.putExtra("photo",acct.getPhotoUrl().toString());
             startActivity(intent);

@@ -7,13 +7,19 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Contraseña</string>
-    <string name="action_sign_in">Iniciar Sesion o Registrarse</string>
+    <string name="action_sign_in">Iniciar Sesion</string>
+    <string name="action_register">Registrarse</string>
     <string name="action_sign_in_google">Iniciar Sesion con Google</string>
     <string name="action_sign_in_short">Iniciar Sesion</string>
     <string name="error_invalid_email">Email Invalido</string>
     <string name="error_invalid_password">La contraseña es muy corta</string>
     <string name="error_incorrect_password">La contraseña es incorrecta</string>
     <string name="error_field_required">Campo Requerido</string>
-    <string name="permission_rationale">"Ser requiere permiso para ver contactos"
-    </string>
+    <string name="permission_rationale">"Ser requiere permiso para ver contactos"</string>
+    <string name="donde_estoy">"Donde estoy?"</string>
+    <string name="contactos">"Contactos"</string>
+    <string name="title_activity_main">FindMe</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
