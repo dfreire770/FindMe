@@ -1,7 +1,9 @@
 {
   "project_info": {
     "project_number": "45282394738",
-    "project_id": "totemic-chimera-147916"
+    "firebase_url": "https://totemic-chimera-147916.firebaseio.com",
+    "project_id": "totemic-chimera-147916",
+    "storage_bucket": "totemic-chimera-147916.appspot.com"
   },
   "client": [
     {
@@ -21,6 +23,10 @@
           }
         },
         {
+          "client_id": "45282394738-di0k5q7jla92f0gnu5aff6hclsvf931h.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
           "client_id": "45282394738-t40d7cjrhf3mng6df7kk308ftged0lpi.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -35,11 +41,16 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "45282394738-di0k5q7jla92f0gnu5aff6hclsvf931h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }
