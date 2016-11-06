@@ -234,13 +234,16 @@ public class GoogleSignInActivity extends BaseActivity implements
     private void updateUI(FirebaseUser user) {
         hideProgressDialog();
         if (user != null) {
-            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
+            /*mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
             mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
 
             findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
+            */
 
             writeNewUser(user);
+            Intent intent = new Intent(this,MainActivity.class);
+            startActivity(intent);
         } else {
             mStatusTextView.setText(R.string.signed_out);
             mDetailTextView.setText(null);
@@ -274,7 +277,7 @@ public class GoogleSignInActivity extends BaseActivity implements
 
         Map<String,Object> map = new HashMap<String,Object>();
         map.put(user.getUid(),"");
-        mDatabase.child("users").setValue(map);
+        mDatabase.child("users").updateChildren(map);
         map.clear();
 
         map.put("email",user.getEmail());
