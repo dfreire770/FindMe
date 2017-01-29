@@ -2,6 +2,7 @@ package com.dkmm.findme.findme;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -28,6 +29,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -126,7 +129,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        final LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title("Posicion Actual");
@@ -141,6 +144,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                onMapClick(latLng);
+            }
+        });
+
+    }
+
+    void onMapClick(LatLng position) {
+
+        Circle circle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(position.latitude, position.longitude))
+                .radius(10000)
+                .strokeColor(Color.RED)
+                .fillColor(Color.BLUE));
+        LatLng center = circle.getCenter();
+        double radius = circle.getRadius();
+        float[] distance = new float[1];
+        Location.distanceBetween(position.latitude, position.longitude, center.latitude, center.longitude, distance);
+        boolean clicked = distance[0] < radius;
+        Log.i("Accion","Click!");
 
     }
 
