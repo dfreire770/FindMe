@@ -3,6 +3,7 @@ package com.dkmm.findme.findme;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,8 +12,10 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.InputType;
@@ -42,6 +45,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.java_websocket.WebSocket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.framing.Framedata;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.channels.NotYetConnectedException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -88,7 +102,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         }
 
         mMapView.getMapAsync(this);
-
         return rootView;
 
     }
@@ -156,6 +169,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             mCurrLocationMarker.remove();
         }
 
+
         //Place current location marker
         final LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
@@ -180,12 +194,17 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             }
         });
 
-//        location.distanceTo(mLastLocation);
+        Toast.makeText(this.getActivity(),"Latitud: " +   location.getLatitude() + "Longitud: " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+
+        Toast.makeText(this.getActivity(),"Distancia:"+location.distanceTo(mLastLocation),Toast.LENGTH_SHORT).show();
+
+
+        //CalculationByDistance(markerOptions.getPosition(),latLng);
 
 
     }
 
-    public double CalculationByDistance(LatLng StartP, LatLng EndP) {
+    public void CalculationByDistance(LatLng StartP, LatLng EndP) {
         int Radius = 6371;// radius of earth in Km
         double lat1 = StartP.latitude;
         double lat2 = EndP.latitude;
@@ -207,7 +226,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
                 + " Meter   " + meterInDec);
 
-        return Radius * c;
+        double result = Radius * c;
+
+
+            Vibrator v = (Vibrator) this.getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            v.vibrate(500);
+            Snackbar.make(this.getView(), "Usted esta saliendo del Limite: " + result + "Km", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+
+
     }
 
 
@@ -232,7 +260,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
-    void onMapClick(LatLng position) {
+    void onMapClick(final LatLng position) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
         builder.setTitle("Limite");
@@ -250,6 +278,20 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 m_Text[0] = input.getText().toString();
+                radious = Integer.parseInt(m_Text[0]);
+
+                mMap.clear();
+                Circle circle = mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(position.latitude, position.longitude))
+                        .radius(radious)
+                        .strokeColor(Color.RED)
+                        .fillColor(Color.BLUE));
+                LatLng center = circle.getCenter();
+                double radius = circle.getRadius();
+                float[] distance = new float[1];
+                Location.distanceBetween(position.latitude, position.longitude, center.latitude, center.longitude, distance);
+                boolean clicked = distance[0] < radius;
+                Log.i("Accion","Click!");
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -261,7 +303,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
         builder.show();
 
-        radious = Integer.parseInt(m_Text[0]);
+        /*radious = Integer.parseInt(m_Text[0]);
 
         Circle circle = mMap.addCircle(new CircleOptions()
                 .center(new LatLng(position.latitude, position.longitude))
@@ -273,7 +315,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         float[] distance = new float[1];
         Location.distanceBetween(position.latitude, position.longitude, center.latitude, center.longitude, distance);
         boolean clicked = distance[0] < radius;
-        Log.i("Accion","Click!");
+        Log.i("Accion","Click!");*/
 
     }
 
@@ -320,4 +362,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             // You can add here other case statements according to your requirement.
         }
     }
+
+
+
 }

@@ -279,7 +279,6 @@ public class GoogleSignInActivity extends BaseActivity implements
         map.put(user.getUid(),"");
         mDatabase.child("users").updateChildren(map);
         map.clear();
-
         map.put("email",user.getEmail());
         mDatabase.child("users").child(user.getUid()).updateChildren(map);
         map.clear();

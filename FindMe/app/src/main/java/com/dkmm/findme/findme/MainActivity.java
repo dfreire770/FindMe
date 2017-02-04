@@ -2,10 +2,14 @@ package com.dkmm.findme.findme;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -27,6 +31,15 @@ import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,GoogleApiClient.OnConnectionFailedListener {
 
@@ -41,12 +54,20 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        connectWebSocket();
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+
+
+                Snackbar.make(view, "Enviando Mensaje", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+                mWebSocketClient.send("Hola, estoy perdido!!, aiudaaaa!!!");
+
+
             }
         });
 
@@ -72,6 +93,8 @@ public class MainActivity extends AppCompatActivity
                     name.setText(user.getDisplayName());
                     TextView email = (TextView) headerLayout.findViewById(R.id.emailtextView);
                     email.setText(user.getEmail());
+
+                    mWebSocketClient.send(user.getDisplayName());
 
                 } else {
                     // User is signed out
@@ -101,7 +124,6 @@ public class MainActivity extends AppCompatActivity
         }
         else
             Log.d("Error","no existe el fragment");
-
 
     }
 
@@ -180,4 +202,73 @@ public class MainActivity extends AppCompatActivity
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    //Enviar Mensaje
+
+    private WebSocketClient mWebSocketClient;
+
+    private void connectWebSocket() {
+        URI uri;
+        try {
+            uri = new URI("ws://192.168.0.4:1337");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        mWebSocketClient = new WebSocketClient(uri) {
+            @Override
+            public void onOpen(ServerHandshake serverHandshake) {
+                Log.i("Websocket", "Opened");
+                //mWebSocketClient.send(user.getDisplayName());
+            }
+
+            @Override
+            public void onMessage(String s) {
+                final String message = s;
+                Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                v.vibrate(400);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //TextView textView = (TextView)findViewById(R.id.messages);
+                        //textView.setText(textView.getText() + "\n" + message);
+                        Log.d("datos: ",message);
+                        try {
+                            JSONObject jsonObject = new JSONObject(message);
+
+
+                            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+
+                            // Setting Dialog Title
+                            alertDialog.setTitle("Alerta");
+
+                            // Setting Dialog Message
+                            alertDialog.setMessage(message);
+
+                            alertDialog.show();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+
+            @Override
+            public void onClose(int i, String s, boolean b) {
+                Log.i("Websocket", "Closed " + s);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.i("Websocket", "Error " + e.getMessage());
+            }
+        };
+        mWebSocketClient.connect();
+    }
+
 }
