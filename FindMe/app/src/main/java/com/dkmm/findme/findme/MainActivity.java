@@ -2,13 +2,19 @@ package com.dkmm.findme.findme;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -55,6 +61,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         connectWebSocket();
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -230,7 +237,7 @@ public class MainActivity extends AppCompatActivity
                 // Vibrate for 500 milliseconds
                 v.vibrate(400);
 
-                runOnUiThread(new Runnable() {
+              runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         //TextView textView = (TextView)findViewById(R.id.messages);
@@ -240,7 +247,7 @@ public class MainActivity extends AppCompatActivity
                             JSONObject jsonObject = new JSONObject(message);
 
 
-                            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                            /*AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
 
                             // Setting Dialog Title
                             alertDialog.setTitle("Alerta");
@@ -248,7 +255,27 @@ public class MainActivity extends AppCompatActivity
                             // Setting Dialog Message
                             alertDialog.setMessage(message);
 
-                            alertDialog.show();
+                            alertDialog.show();*/
+
+
+                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0 /* Request code */, intent,
+                                    PendingIntent.FLAG_ONE_SHOT);
+
+                            Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MainActivity.this)
+                                    .setSmallIcon(R.drawable.cast_ic_notification_small_icon)
+                                    .setContentTitle("FCM Message")
+                                    .setContentText(message)
+                                    .setAutoCancel(true)
+                                    .setSound(defaultSoundUri)
+                                    .setContentIntent(pendingIntent);
+
+                            NotificationManager notificationManager =
+                                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                            notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
 
                         } catch (JSONException e) {
                             e.printStackTrace();

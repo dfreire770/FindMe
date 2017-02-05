@@ -64,10 +64,10 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".MessagingService"
+        <!--
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"/>
+        -->
     </application>
 
 </manifest>
