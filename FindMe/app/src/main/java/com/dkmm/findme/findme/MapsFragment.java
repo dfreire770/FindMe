@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -45,19 +46,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.java_websocket.WebSocket;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft;
-import org.java_websocket.framing.Framedata;
-import org.java_websocket.handshake.ServerHandshake;
-
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.nio.channels.NotYetConnectedException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
+import java.util.Map;
+
 
 /**
  * Created by Diego on 10/8/2015.
@@ -67,7 +58,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    private LocationManager locationManager;
     private GoogleMap mMap;
     MapView mMapView;
     GoogleApiClient mGoogleApiClient;
@@ -77,6 +67,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     Marker mCurrLocationMarker;
 
     int radious;
+
+    Handler handler;
 
     public MapsFragment() {
     }
@@ -102,12 +94,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         }
 
         mMapView.getMapAsync(this);
+
+
         return rootView;
 
     }
 
+
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    public boolean checkLocationPermission(){
+
+    public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this.getActivity().getBaseContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -143,12 +139,14 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this.getActivity().getBaseContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
         }
+        Log.d("Nota", "Por aqui!");
 
     }
 
@@ -164,17 +162,17 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onLocationChanged(Location location) {
+
         mLastLocation = location;
         if (mCurrLocationMarker != null) {
             mCurrLocationMarker.remove();
         }
 
-
         //Place current location marker
         final LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
-        markerOptions.title("Posicion Actual");
+        markerOptions.title("Posicion Inicial");
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         mCurrLocationMarker = mMap.addMarker(markerOptions);
 
@@ -194,22 +192,23 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             }
         });
 
-        Toast.makeText(this.getActivity(),"Latitud: " +   location.getLatitude() + "Longitud: " + location.getLongitude(), Toast.LENGTH_SHORT).show();
-
-        Toast.makeText(this.getActivity(),"Distancia:"+location.distanceTo(mLastLocation),Toast.LENGTH_SHORT).show();
-
-
-        //CalculationByDistance(markerOptions.getPosition(),latLng);
-
 
     }
 
-    public void CalculationByDistance(LatLng StartP, LatLng EndP) {
+    public double CalculationByDistance(LatLng StartP, LatLng EndP) {
         int Radius = 6371;// radius of earth in Km
+
         double lat1 = StartP.latitude;
+        Log.d("Lat1", lat1 + "");
         double lat2 = EndP.latitude;
+        Log.d("Lat2", lat2 + "");
+
         double lon1 = StartP.longitude;
+        Log.d("Lon1", lon1 + "");
+
         double lon2 = EndP.longitude;
+        Log.d("Lon2", lon2 + "");
+
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
@@ -225,17 +224,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         int meterInDec = Integer.valueOf(newFormat.format(meter));
         Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
                 + " Meter   " + meterInDec);
+        Toast.makeText(MapsFragment.this.getActivity(), meter + " m", Toast.LENGTH_SHORT).show();
 
-        double result = Radius * c;
-
-
-            Vibrator v = (Vibrator) this.getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-            // Vibrate for 500 milliseconds
-            v.vibrate(500);
-            Snackbar.make(this.getView(), "Usted esta saliendo del Limite: " + result + "Km", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-
-
+        return meter;
     }
 
 
@@ -252,72 +243,87 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
             }
-        }
-        else {
+        } else {
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
 
     }
 
+    Circle circle;
+    LatLng posicionCirculo;
+
     void onMapClick(final LatLng position) {
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-        builder.setTitle("Limite");
+        radious = 10;
 
-        final String[] m_Text = {""};
+        posicionCirculo = new LatLng(position.latitude, position.longitude);
 
-// Set up the input
-        final EditText input = new EditText(this.getActivity());
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
-
-// Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                m_Text[0] = input.getText().toString();
-                radious = Integer.parseInt(m_Text[0]);
-
-                mMap.clear();
-                Circle circle = mMap.addCircle(new CircleOptions()
-                        .center(new LatLng(position.latitude, position.longitude))
-                        .radius(radious)
-                        .strokeColor(Color.RED)
-                        .fillColor(Color.BLUE));
-                LatLng center = circle.getCenter();
-                double radius = circle.getRadius();
-                float[] distance = new float[1];
-                Location.distanceBetween(position.latitude, position.longitude, center.latitude, center.longitude, distance);
-                boolean clicked = distance[0] < radius;
-                Log.i("Accion","Click!");
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
-
-        /*radious = Integer.parseInt(m_Text[0]);
-
-        Circle circle = mMap.addCircle(new CircleOptions()
-                .center(new LatLng(position.latitude, position.longitude))
+        circle = mMap.addCircle(new CircleOptions()
+                .center(posicionCirculo)
                 .radius(radious)
-                .strokeColor(Color.RED)
-                .fillColor(Color.BLUE));
+                .strokeColor(Color.RED));
         LatLng center = circle.getCenter();
         double radius = circle.getRadius();
         float[] distance = new float[1];
         Location.distanceBetween(position.latitude, position.longitude, center.latitude, center.longitude, distance);
         boolean clicked = distance[0] < radius;
-        Log.i("Accion","Click!");*/
+        Log.i("Accion", "Click!");
+
+        handler = new Handler();
+
+        handler.postDelayed(runLocation, 1000);
+
+
 
     }
+
+
+    LatLng ultimaLatLng;
+
+    public Runnable runLocation = new Runnable() {
+        @Override
+        public void run() {
+            //Toast.makeText(MapsFragment.this.getActivity(), "location check", Toast.LENGTH_SHORT).show();
+
+            if (ActivityCompat.checkSelfPermission(
+                    MapsFragment.this.getActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    MapsFragment.this.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+            if (mLastLocation != null) {
+                Toast.makeText(MapsFragment.this.getActivity(),"Latitud: " +   mLastLocation.getLatitude() + "Longitud: " + mLastLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+            }
+
+                        ultimaLatLng=new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+
+            double result = CalculationByDistance(posicionCirculo,ultimaLatLng);
+
+            if(result>0.01){
+                Vibrator v = (Vibrator) MapsFragment.this.getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                v.vibrate(500);
+
+                //Toast.makeText(MapsFragment.this.getActivity(),"Fuera del Limite: " +   mLastLocation.getLatitude() + "Longitud: " + mLastLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+
+                ((MainActivity)getActivity()).sendMessage(ultimaLatLng);
+
+
+            }
+
+            MapsFragment.this.handler.postDelayed(MapsFragment.this.runLocation, 10000);
+        }
+    };
 
     protected synchronized void buildGoogleApiClient(){
 
@@ -362,6 +368,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             // You can add here other case statements according to your requirement.
         }
     }
+
+
 
 
 

@@ -16,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -34,6 +35,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity
 
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseUser user;
+    String usuario;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -62,7 +65,6 @@ public class MainActivity extends AppCompatActivity
 
         connectWebSocket();
 
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,8 +74,9 @@ public class MainActivity extends AppCompatActivity
                 Snackbar.make(view, "Enviando Mensaje", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                mWebSocketClient.send("Hola, estoy perdido!!, aiudaaaa!!!");
-
+                //mWebSocketClient.send("Hola, sali de la posicion inicial");
+              /*  SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage("0999871701", null, "Hola, sali de la posicion inicial", null, null);*/
 
             }
         });
@@ -95,6 +98,7 @@ public class MainActivity extends AppCompatActivity
                     // User is signed in
                     Log.d("Alerta", "onAuthStateChanged:signed_in:" + user.getUid());
 
+                    usuario=user.getDisplayName();
                     View headerLayout = navigationView.getHeaderView(0);
                     TextView name = (TextView) headerLayout.findViewById(R.id.usernametextView);
                     name.setText(user.getDisplayName());
@@ -217,7 +221,7 @@ public class MainActivity extends AppCompatActivity
     private void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("ws://192.168.0.4:1337");
+            uri = new URI("ws://192.168.84.115:1337");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -233,9 +237,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onMessage(String s) {
                 final String message = s;
-                Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
-                // Vibrate for 500 milliseconds
-                v.vibrate(400);
 
               runOnUiThread(new Runnable() {
                     @Override
@@ -244,39 +245,36 @@ public class MainActivity extends AppCompatActivity
                         //textView.setText(textView.getText() + "\n" + message);
                         Log.d("datos: ",message);
                         try {
+
                             JSONObject jsonObject = new JSONObject(message);
+                            String autor=jsonObject.getString("author");
+                            if(!autor.equals(usuario)) {
+                                String text = jsonObject.getString("author") + ": " + jsonObject.getString("text");
 
 
-                            /*AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                                Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+                                // Vibrate for 500 milliseconds
+                                v.vibrate(400);
 
-                            // Setting Dialog Title
-                            alertDialog.setTitle("Alerta");
+                                Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0 /* Request code */, intent,
+                                        PendingIntent.FLAG_ONE_SHOT);
 
-                            // Setting Dialog Message
-                            alertDialog.setMessage(message);
+                                Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MainActivity.this)
+                                        .setSmallIcon(R.drawable.cast_ic_notification_small_icon)
+                                        .setContentTitle("FindMe")
+                                        .setContentText(text)
+                                        .setAutoCancel(true)
+                                        .setSound(defaultSoundUri)
+                                        .setContentIntent(pendingIntent);
 
-                            alertDialog.show();*/
+                                NotificationManager notificationManager =
+                                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-
-                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0 /* Request code */, intent,
-                                    PendingIntent.FLAG_ONE_SHOT);
-
-                            Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MainActivity.this)
-                                    .setSmallIcon(R.drawable.cast_ic_notification_small_icon)
-                                    .setContentTitle("FCM Message")
-                                    .setContentText(message)
-                                    .setAutoCancel(true)
-                                    .setSound(defaultSoundUri)
-                                    .setContentIntent(pendingIntent);
-
-                            NotificationManager notificationManager =
-                                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-                            notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
-
+                                notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -296,6 +294,13 @@ public class MainActivity extends AppCompatActivity
             }
         };
         mWebSocketClient.connect();
+
+    }
+
+    public void sendMessage(LatLng Position){
+        mWebSocketClient.send("Hola, soy "+usuario+". Sali de la posicion. Ayudame!");
+        //mWebSocketClient.send("Hola, sali de la posicion inicial");
+
     }
 
 }
