@@ -45,8 +45,18 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -58,6 +68,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().getRoot();
+    private FirebaseAuth.AuthStateListener mAuthListener;
     private GoogleMap mMap;
     MapView mMapView;
     GoogleApiClient mGoogleApiClient;
@@ -69,6 +81,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     int radious;
 
     Handler handler;
+
+    FirebaseUser user;
+    FirebaseAuth firebaseAuth;
 
     public MapsFragment() {
     }
@@ -95,6 +110,14 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
         mMapView.getMapAsync(this);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
+
+        Log.d("Usuario", user.getDisplayName());
+
+        readUsersLocation();
 
         return rootView;
 
@@ -191,6 +214,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 onMapClick(latLng);
             }
         });
+
+        writeUserLocation(user,new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()));
 
 
     }
@@ -305,7 +330,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 Toast.makeText(MapsFragment.this.getActivity(),"Latitud: " +   mLastLocation.getLatitude() + "Longitud: " + mLastLocation.getLongitude(), Toast.LENGTH_SHORT).show();
             }
 
-                        ultimaLatLng=new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+            ultimaLatLng=new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+
+            writeUserLocation(user,ultimaLatLng);
 
             double result = CalculationByDistance(posicionCirculo,ultimaLatLng);
 
@@ -370,7 +397,45 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
+    public void writeUserLocation(FirebaseUser user, LatLng posicion) {
 
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put(user.getUid(),"");
+        mDatabase.child("users").updateChildren(map);
+        map.clear();
+        map.put("email",user.getEmail());
+        mDatabase.child("users").child(user.getUid()).updateChildren(map);
+        map.clear();
+
+        map.put("name",user.getDisplayName());
+        mDatabase.child("users").child(user.getUid()).updateChildren(map);
+        map.clear();
+
+        map.put("lat",posicion.latitude);
+        mDatabase.child("users").child(user.getUid()).updateChildren(map);
+        map.clear();
+
+        map.put("lng",posicion.longitude);
+        mDatabase.child("users").child(user.getUid()).updateChildren(map);
+        map.clear();
+
+    }
+
+    public void readUsersLocation(){
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("Usuarios",dataSnapshot.getValue()+"");
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
 
 
 }

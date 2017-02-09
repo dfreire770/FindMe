@@ -33,6 +33,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -72,6 +73,7 @@ public class GoogleSignInActivity extends BaseActivity implements
 
     private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().getRoot();
 
+    FirebaseUser user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,8 +87,6 @@ public class GoogleSignInActivity extends BaseActivity implements
 
         // Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         // [START config_signin]
         // Configure Google Sign In
@@ -109,7 +109,7 @@ public class GoogleSignInActivity extends BaseActivity implements
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
@@ -117,10 +117,8 @@ public class GoogleSignInActivity extends BaseActivity implements
                     // User is signed out
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
-                // [START_EXCLUDE]
                 updateUI(user);
-                //AQUI DEBE IR EL INTENT
-                // [END_EXCLUDE]
+
             }
         };
         // [END auth_state_listener]
@@ -241,15 +239,15 @@ public class GoogleSignInActivity extends BaseActivity implements
             findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
             */
 
-            writeNewUser(user);
+            //writeNewUser(user);
             Intent intent = new Intent(this,MainActivity.class);
             startActivity(intent);
         } else {
-            mStatusTextView.setText(R.string.signed_out);
-            mDetailTextView.setText(null);
+            //mStatusTextView.setText(R.string.signed_out);
+            //mDetailTextView.setText(null);
 
             findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+            //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
         }
     }
 
@@ -273,24 +271,7 @@ public class GoogleSignInActivity extends BaseActivity implements
         }
     }
 
-    private void writeNewUser(FirebaseUser user) {
 
-        Map<String,Object> map = new HashMap<String,Object>();
-        map.put(user.getUid(),"");
-        mDatabase.child("users").updateChildren(map);
-        map.clear();
-        map.put("email",user.getEmail());
-        mDatabase.child("users").child(user.getUid()).updateChildren(map);
-        map.clear();
 
-        map.put("name",user.getDisplayName());
-        mDatabase.child("users").child(user.getUid()).updateChildren(map);
-        map.clear();
-
-        map.put("location","Cumbaya");
-        mDatabase.child("users").child(user.getUid()).updateChildren(map);
-        map.clear();
-
-    }
 
 }

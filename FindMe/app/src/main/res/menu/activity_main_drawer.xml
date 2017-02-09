@@ -14,13 +14,9 @@
             android:id="@+id/nav_slideshow"
             android:icon="@android:drawable/ic_dialog_alert"
             android:title="Alertas" />
-        <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Herramientas" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Usuario">
         <menu>
             <item
                 android:id="@+id/nav_send"

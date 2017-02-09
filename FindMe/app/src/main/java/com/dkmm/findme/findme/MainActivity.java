@@ -41,7 +41,6 @@ import com.google.firebase.auth.FirebaseUser;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,GoogleApiClient.OnConnectionFailedListener {
 
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseUser user;
+    FirebaseUser user;
     String usuario;
     private GoogleApiClient mGoogleApiClient;
 
@@ -198,9 +197,8 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_send) {
+        }
+        else if (id == R.id.nav_send) {
             signOut();
         }
 
@@ -219,9 +217,10 @@ public class MainActivity extends AppCompatActivity
     private WebSocketClient mWebSocketClient;
 
     private void connectWebSocket() {
+        boolean bool;
         URI uri;
         try {
-            uri = new URI("ws://192.168.84.115:1337");
+            uri = new URI("ws://192.168.93.65:1337");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -263,7 +262,7 @@ public class MainActivity extends AppCompatActivity
 
                                 Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                                 NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MainActivity.this)
-                                        .setSmallIcon(R.drawable.cast_ic_notification_small_icon)
+                                        .setSmallIcon(R.mipmap.ic_launcher)
                                         .setContentTitle("FindMe")
                                         .setContentText(text)
                                         .setAutoCancel(true)
@@ -273,7 +272,7 @@ public class MainActivity extends AppCompatActivity
                                 NotificationManager notificationManager =
                                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                                notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+                                notificationManager.notify(0 , notificationBuilder.build());
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
