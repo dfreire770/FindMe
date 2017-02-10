@@ -2,6 +2,7 @@ package com.dkmm.findme.findme;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -36,6 +37,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -56,6 +58,9 @@ public class MainActivity extends AppCompatActivity
     String usuario;
     private GoogleApiClient mGoogleApiClient;
 
+    private String frameAcual;
+    FloatingActionButton fab;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +77,18 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(frameAcual == "MapFragment"){
+                    //lo q hace el boton en el mapa
+                }else if(frameAcual == "ContactoFragment"){
+                    new DialogContacto().show(getSupportFragmentManager(), "createSimpleDialog");
+                }
+            }
+        });
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -113,14 +130,17 @@ public class MainActivity extends AppCompatActivity
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-        Fragment fragment = new MapsFragment();
-        if (fragment != null) {
+        //Fragment fragment = new MapsFragment();
+
+        manejoFragments(new MapFragment());
+        frameAcual = "MapFragment";
+      /* if (fragment != null) {
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_main, fragment).commit();
 
         }
         else
-            Log.d("Error","no existe el fragment");
+            Log.d("Error","no existe el fragment");*/
 
     }
 
@@ -181,6 +201,10 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
+            frameAcual ="ContactoFragment";
+
+            manejoFragments(new FragmentContacto());
+
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -301,6 +325,22 @@ public class MainActivity extends AppCompatActivity
     public void sendMessage(LatLng Position){
         mWebSocketClient.send("Hola, soy "+usuario+". Sali de la posicion. Ayudame!");
         //mWebSocketClient.send("Hola, sali de la posicion inicial");
+
+    }
+
+
+
+    /*--------CAMBIO FRAGMENTS-------------*/
+
+    public void manejoFragments(Fragment fragment){
+
+        if(fragment != null){
+            Fragment fragmentActual = fragment;
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace((R.id.content_main, fragmentActual);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
 
     }
 
