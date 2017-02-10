@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -55,8 +56,15 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 
@@ -117,8 +125,52 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
         Log.d("Usuario", user.getDisplayName());
 
-        readUsersLocation();
 
+
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                readUsersLocation();
+                Snackbar.make(view, "Mostrando Posiciones de Usuarios", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+
+                if (mCurrLocationMarker != null) {
+                    mCurrLocationMarker.remove();
+                }
+
+                //Place current location marker
+                final LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title("Posicion Inicial "+ user.getDisplayName());
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                mCurrLocationMarker = mMap.addMarker(markerOptions);
+
+
+                mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+                        onMapClick(latLng);
+                    }
+                });
+
+                writeUserLocation(user,new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()));
+
+
+
+
+
+                /*Snackbar.make(view, "Enviando Mensaje", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
+                //mWebSocketClient.send("Hola, sali de la posicion inicial");
+              /*  SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage("0999871701", null, "Hola, sali de la posicion inicial", null, null);*/
+
+            }
+        });
         return rootView;
 
     }
@@ -187,36 +239,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     public void onLocationChanged(Location location) {
 
         mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
-        }
 
-        //Place current location marker
-        final LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Posicion Inicial");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        mCurrLocationMarker = mMap.addMarker(markerOptions);
-
+        LatLng latlng = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
         //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
         //stop location updates
+
+
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
-
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-            @Override
-            public void onInfoWindowClick(Marker marker) {
-                onMapClick(latLng);
-            }
-        });
-
-        writeUserLocation(user,new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()));
-
 
     }
 
@@ -267,10 +301,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                     == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setMapToolbarEnabled(false);
             }
         } else {
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMapToolbarEnabled(false);
         }
 
     }
@@ -425,13 +461,62 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d("Usuarios",dataSnapshot.getValue()+"");
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                Map<String, Object> users = (HashMap<String,Object>) dataSnapshot.child("users").getValue();
 
+                //Log.d("Valor",);
+
+                JSONObject obj=new JSONObject(users);
+
+                Iterator<String> iter = obj.keys();
+                while (iter.hasNext()) {
+                    String key = iter.next();
+                    Log.d("key",key);
+                    try {
+                        String value = obj.get(key).toString();
+                        JSONObject usuario = new JSONObject(value);
+                        String nombre = usuario.get("name").toString();
+                        double lat = Double.parseDouble(usuario.get("lat").toString());
+
+                        double lng = Double.parseDouble(usuario.get("lng").toString());
+
+                        LatLng latlng = new LatLng(lat,lng);
+
+                        if(!nombre.equals(user.getDisplayName())){
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(latlng);
+                            markerOptions.title(nombre);
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                            mCurrLocationMarker = mMap.addMarker(markerOptions);
+                        }
+
+
+
+
+                        Log.d("Valor JSON",value);
+
+
+                    } catch (JSONException e) {
+                        // Something went wrong!
+                    }
+                }
+
+
+                /*List<Object> values = new ArrayList<Object>(td.values());
+                Log.d("values ", String.valueOf(values));
+
+                Log.d("values ", td.values().toString());
+
+
+               Log.d("Valores",obj);
+*/
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w("Failed to read value.", error.toException());
             }
         });
 

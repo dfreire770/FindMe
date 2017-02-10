@@ -2,6 +2,7 @@ package com.dkmm.findme.findme;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -64,21 +65,7 @@ public class MainActivity extends AppCompatActivity
 
         connectWebSocket();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-
-                Snackbar.make(view, "Enviando Mensaje", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-
-                //mWebSocketClient.send("Hola, sali de la posicion inicial");
-              /*  SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage("0999871701", null, "Hola, sali de la posicion inicial", null, null);*/
-
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -162,14 +149,14 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
         }
     }
-
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
-
+    }*/
+/*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -184,7 +171,7 @@ public class MainActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
-
+*/
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -220,7 +207,8 @@ public class MainActivity extends AppCompatActivity
         boolean bool;
         URI uri;
         try {
-            uri = new URI("ws://192.168.93.65:1337");
+            //uri = new URI("ws://findme.zapto.org:1337");
+            uri = new URI("ws://192.168.0.2:1337");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -247,7 +235,7 @@ public class MainActivity extends AppCompatActivity
 
                             JSONObject jsonObject = new JSONObject(message);
                             String autor=jsonObject.getString("author");
-                            if(!autor.equals(usuario)) {
+                            //if(!autor.equals(usuario)) {
                                 String text = jsonObject.getString("author") + ": " + jsonObject.getString("text");
 
 
@@ -267,13 +255,27 @@ public class MainActivity extends AppCompatActivity
                                         .setContentText(text)
                                         .setAutoCancel(true)
                                         .setSound(defaultSoundUri)
-                                        .setContentIntent(pendingIntent);
+                                        //.setContentIntent(pendingIntent)
+                                        .setPriority(Notification.PRIORITY_MAX);
+
+                            NotificationCompat.InboxStyle inboxStyle =
+                                    new NotificationCompat.InboxStyle();
+                            String[] events = new String[6];
+// Sets a title for the Inbox in expanded layout
+                            inboxStyle.setBigContentTitle("Detalles:");
+
+// Moves events into the expanded layout
+                            for (int i=0; i < events.length; i++) {
+
+                                inboxStyle.addLine(events[i]);
+                            }
+// Moves the expanded layout object into the notification object.
+                            notificationBuilder.setStyle(inboxStyle);
 
                                 NotificationManager notificationManager =
                                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
                                 notificationManager.notify(0 , notificationBuilder.build());
-                            }
+                            //}
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
