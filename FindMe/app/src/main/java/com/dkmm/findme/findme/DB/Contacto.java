@@ -1,4 +1,4 @@
-package com.dkmm.findme.findme;
+package com.dkmm.findme.findme.DB;
 
 /**
  * Created by kevin on 09/02/2017.
