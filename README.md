@@ -13,9 +13,11 @@ This App was created for Android Nougat. If you plan to use it, you'll probably 
 Node.js server included.
 
 Install the application and run the Node.js server provided. LogIn to the App with your Google Account.
+
 When the map shows, the app will connect to a Firebase Database to register and update your current location on real time.
 
 The Node.js server, is used to register who is connected to the app and send messages to other connected users.
+
 When the tracked user leaves the defined area, the server will notify to the others sending messages to connected devices.
 
 This app was just an experiment and for academic porpuses.
