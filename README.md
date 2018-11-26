@@ -6,7 +6,7 @@ If they get out of range, it sends notifications to the others.
 * Google Maps API
 * Firebase
 
-Warning: This app sends SMS messages to a defined CelLphone Number. Fees may be applyied.
+Warning: This app sends SMS messages to a defined Cellphone Number. Fees may be applyied.
 
 ## How it works
 This App was created for Android Nougat. If you plan to use it, you'll probably need to update a couple of classes.
